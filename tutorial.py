@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sb
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
@@ -93,3 +94,30 @@ disp.ax_.set_title("Confusion Matrix") #
 
 print(metrics.classification_report(ytest,
                                     models[1].predict(xtest)))
+
+joblib.dump(models[1], 'wine_quality_model.pkl')
+joblib.dump(norm, 'scaler.pkl')
+print("Model and scaler saved")
+
+loaded_model = joblib.load('wine_quality_model.pkl')
+loaded_scaler = joblib.load('scaler.pkl')
+
+new_data = pd.DataFrame({
+    'type': [1, 0],  # 1 for white, 0 for red (two samples)
+    'fixed acidity': [7.0, 8.5],
+    'volatile acidity': [0.3, 0.5],
+    'citric acid': [0.4, 0.2],
+    'residual sugar': [2.0, 1.5],
+    'chlorides': [0.05, 0.08],
+    'free sulfur dioxide': [20.0, 15.0],
+    'density': [0.995, 0.997],
+    'pH': [3.2, 3.4],
+    'sulphates': [0.6, 0.7],
+    'alcohol': [10.5, 11.0]
+})
+
+# Preprocessing: Drop 'total sulfur dioxide' (already done in this sample), encode 'type' (already 0/1), scale
+new_data_scaled = loaded_scaler.transform(new_data)
+new_predictions = loaded_model.predict(new_data_scaled)
+
+print("Predictions for new data (0=not best quality, 1=best quality):", new_predictions)
